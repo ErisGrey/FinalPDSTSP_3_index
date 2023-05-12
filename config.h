@@ -21,7 +21,7 @@ public:
     string output = "output.txt";
     bool found_output = false;
 
-    double time_limit = 15;
+    double time_limit = 3600;
     bool found_time_limit = false;
 
     double mem_limit = 28000;

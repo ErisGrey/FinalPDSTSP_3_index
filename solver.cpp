@@ -634,28 +634,36 @@ void Solver::write_output()
 	ocsv1 << instance->instanceName << endl;
 	ocsv1 << "Truck tour: " << endl;
 	int max;
-	int trace;
+	vector<int> trace;
+	int traceOr;
 	int posi = 1;
 	for (int j : C)
 	{
 		if (masterCplex.getValue(x[0][j][0]) != 0)
 		{
 			max = masterCplex.getValue(h[0][j][0]);
-			trace = arr[j];
+			traceOr = j;
 			break;
 		}
 	}
-	ocsv1 << "0 -> " << trace <<  " -> ";
+	trace.resize(max+1, 0);
+	trace[0] = traceOr;
+	ocsv1 << "0 -> ";
 	while (posi <= max) {
 		for (int j : N) {
-			if (trace == j) continue;
-			if (masterCplex.getValue(x[trace][j][posi]) != 0) {
-				trace = arr[j];
+			if (trace[posi-1] == j) continue;
+			if (masterCplex.getValue(x[trace[posi-1]][j][posi]) != 0) {
 				posi++;
-				ocsv1 << trace << " -> ";
+				trace[posi-1] = j;	
+				//ocsv1 << trace << " -> ";
 			}
 		}
 		
+	}
+	for (int i = 0; i <= max; i++)
+	{
+		if (i < max) ocsv1 << arr[trace[i]] << " -> ";
+		else ocsv1 << arr[trace[i]];
 	}
 	ocsv1 << endl;
 	ocsv1 << "Drone value:  " << endl;
@@ -663,8 +671,8 @@ void Solver::write_output()
 	{
 		if (masterCplex.getValue(z[i]) == 0)
 		{
-			ocsv1 << i << " " << masterCplex.getValue(a[i]) << ",";
-			ocsv1 << "drone_time[" << i << "] = " << instance->energyModel->flightTime[arr[i]] << endl;
+			ocsv1 << arr[i] << " " << masterCplex.getValue(a[i]) << ",";
+			ocsv1 << "drone_time[" << arr[i] << "] = " << instance->energyModel->flightTime[arr[i]] << endl;
 		}
 	}
 		/* masterCplex.getObjValue() << ","
