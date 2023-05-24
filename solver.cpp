@@ -13,23 +13,23 @@ Solver::Solver(Instance* instance, string input, string output, double time_limi
 	status = "-";
 
 	/*  SET -------------------------------- */
-	for (int i = 0; i < instance->num_nodes; ++i)
+	for (int i = 0; i <= instance->num_nodes; ++i)
 		N.push_back(i);
-	for (int i = 1; i < instance->num_nodes; ++i)
+	for (int i = 1; i <= instance->num_nodes; ++i)
 		C.push_back(i);
-	arr.resize(instance->num_nodes, -1);
+	arr.resize(instance->num_nodes+1, -1);
 	arr[0] = 0;
 	int tg1;
-	for (int i = 1; i < instance->num_nodes; i++)
+	for (int i = 1; i <= instance->num_nodes; i++)
 	{
 		arr[i] = i;
 	}
-	for (int i = 1; i < instance->num_nodes; i++)
+	for (int i = 1; i <= instance->num_nodes; i++)
 	{
-		if (instance->tdrone(i) < 0) continue;
-		for (int j = i + 1; j < instance->num_nodes; j++) {
-			if (instance->tdrone(j) < 0) continue;
-			if (instance->energyModel->flightTime[arr[i]] < instance->energyModel->flightTime[arr[j]]) {
+		if (instance->time_drone[i] < 0) continue;
+		for (int j = i + 1; j <= instance->num_nodes; j++) {
+			if (instance->time_drone[j] < 0) continue;
+			if (instance->time_drone[arr[i]] < instance->time_drone[arr[j]]) {
 				tg1 = arr[i];
 				arr[i] = arr[j];
 				arr[j] = tg1;
@@ -39,10 +39,10 @@ Solver::Solver(Instance* instance, string input, string output, double time_limi
 
 
 
-	/*for (int i = 1; i < instance->num_nodes; i++)
+	for (int i = 1; i <= instance->num_nodes; i++)
 	{
 		cout << arr[i] << endl;
-	}*/
+	}
 
 	// --
 	numNode = instance->num_nodes;
@@ -119,19 +119,19 @@ void Solver::createModel() {
 	masterModel = IloModel(masterEnv);
 	masterCplex = IloCplex(masterEnv);
 
-	x = NumVar3D(masterEnv, numNode); // x_ijk
-	h = NumVar3D(masterEnv, numNode); // h_ijk
-	a = IloNumVarArray(masterEnv, numNode);
-	z = IloNumVarArray(masterEnv, numNode);
+	x = NumVar3D(masterEnv, numNode+1); // x_ijk
+	h = NumVar3D(masterEnv, numNode+1); // h_ijk
+	a = IloNumVarArray(masterEnv, numNode+1);
+	z = IloNumVarArray(masterEnv, numNode+1);
 
 	stringstream name;
 	// x_ijk
 	for (int i : N)
 	{
-		x[i] = NumVar2D(masterEnv, numNode);
+		x[i] = NumVar2D(masterEnv, numNode+1);
 		for (int j : N) {
 			if (j == i) continue;
-			x[i][j] = IloNumVarArray(masterEnv, numNode);
+			x[i][j] = IloNumVarArray(masterEnv, numNode+1);
 			for (int k : N) {
 				name << "x." << i << "." << j << "." << k;
 				x[i][j][k] = IloNumVar(masterEnv, 0, 1, ILOINT, name.str().c_str());
@@ -144,10 +144,10 @@ void Solver::createModel() {
 	// h_ijk
 	for (int i : N)
 	{
-		h[i] = NumVar2D(masterEnv, numNode);
+		h[i] = NumVar2D(masterEnv, numNode+1);
 		for (int j : N) {
 			if (j == i) continue;
-			h[i][j] = IloNumVarArray(masterEnv, numNode);
+			h[i][j] = IloNumVarArray(masterEnv, numNode+1);
 			for (int k : N) {
 				name << "h." << i << "." << j << "." << k;
 				h[i][j][k] = IloNumVar(masterEnv, 0, IloInfinity, ILOINT, name.str().c_str());
@@ -175,7 +175,7 @@ void Solver::createModel() {
 
 
 	for (int i : freeCustomers) {
-		cout << instance->energyModel->flightTime[i] << endl;
+		cout << instance->time_drone[arr[i]] << endl;
 	}
 
 
@@ -192,7 +192,7 @@ void Solver::createModel() {
 
 	for (int i : freeCustomers)
 	{
-		exprSolution += a[i] * instance->energyModel->flightTime[arr[i]];
+		exprSolution += a[i] * instance->time_drone[arr[i]];
 	}
 
 
@@ -604,7 +604,7 @@ void Solver::dispay_solution()
 		if (masterCplex.getValue(z[i]) == 0)
 		{
 			cout << arr[i] << " " << masterCplex.getValue(a[i]) << ",";
-			cout << "drone_time[" << arr[i] << "] = " << instance->energyModel->flightTime[arr[i]] << endl;
+			cout << "drone_time[" << arr[i] << "] = " << instance->time_drone[arr[i]] << endl;
 		}
 	}
 
@@ -672,7 +672,7 @@ void Solver::write_output()
 		if (masterCplex.getValue(z[i]) == 0)
 		{
 			ocsv1 << arr[i] << " " << masterCplex.getValue(a[i]) << ",";
-			ocsv1 << "drone_time[" << arr[i] << "] = " << instance->energyModel->flightTime[arr[i]] << endl;
+			ocsv1 << "drone_time[" << arr[i] << "] = " << instance->time_drone[arr[i]] << endl;
 		}
 	}
 		/* masterCplex.getObjValue() << ","

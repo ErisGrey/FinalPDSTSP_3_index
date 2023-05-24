@@ -4,6 +4,9 @@
 #include "solver.h"
 int main(int argc, char* argv[])
 {
+    // FinalPDSTSP -i C:\Users\admin\Downloads\small\1-MAP.csv -pi C:\Users\admin\Downloads\superDrone\other-params.txt
+    // FinalPDSTSP -i C:\Users\admin\Downloads\small\1-coor.txt -pi C:\Users\admin\Downloads\superDrone\other-params.txt
+    // FinalPDSTSP -i C:\Users\admin\Downloads\small\1-MAP.txt -pi C:\Users\admin\Downloads\superDrone\other-params.txt
     // FinalPDSTSP -i C:\Users\admin\Downloads\superDrone3\instances\small\20-rc-e.csv -pi C:\Users\admin\Downloads\superDrone\other-params.txt
     // FinalPDSTSP -i C:\Users\admin\Downloads\superDrone1\instances\small\15-r-e-1.csv -pi C:\Users\admin\Downloads\superDrone\other-params.txt
     // FinalPDSTSP -i C:\Users\admin\Downloads\superDrone3\instances\small\15-r-e.csv -pi C:\Users\admin\Downloads\superDrone\other-params.txt

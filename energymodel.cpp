@@ -4,9 +4,9 @@
 
 using namespace std;
 
-double EnergyModel::get_P_takeoff( const double& parcel_weight)
+double EnergyModel::get_P_takeoff(const double& parcel_weight)
 {
-    const double T = g * (getW_single_drone() + parcel_weight );
+    const double T = g * (getW_single_drone() + parcel_weight);
     return get_k1() *
         T *
         (v_takeoff / 2 +
@@ -15,7 +15,7 @@ double EnergyModel::get_P_takeoff( const double& parcel_weight)
         get_c2() * pow(T, 1.5); // profile power for takeoff
 }
 
-double EnergyModel::get_P_landing( const double& parcel_weight)
+double EnergyModel::get_P_landing(const double& parcel_weight)
 {
     const double T = g * (getW_single_drone() + parcel_weight);
     return get_k1() *
@@ -29,7 +29,7 @@ double EnergyModel::get_P_landing( const double& parcel_weight)
 double EnergyModel::get_P_flight(const double& w_parcel, const double& vh)
 {
     const double T = g * (getW_single_drone() + w_parcel);
-    double alpha = get_alpha( w_parcel, vh);
+    double alpha = get_alpha(w_parcel, vh);
     double cos_a = cos(alpha * PI / 180);
 
     return (get_c1() + get_c2()) * pow(pow(T - get_c5() * pow(vh * cos_a, 2), 2)
@@ -40,7 +40,7 @@ double EnergyModel::get_P_flight(const double& w_parcel, const double& vh)
         get_c4() * pow(vh, 3);
 }
 
-double EnergyModel::get_P_hover( const double& w_parcel)
+double EnergyModel::get_P_hover(const double& w_parcel)
 {
     return (get_c1() + get_c2()) * pow((getW_single_drone() + w_parcel) * g, 1.5);
 }
@@ -128,7 +128,7 @@ double EnergyModel::get_alpha(const double& w_parcel, const double& vh)
     //assert(false); // never get here
     for (double alpha = 0; alpha < 90; alpha += 0.1) {
         double rad = alpha * PI / 180;
-        double lhs = tan(rad) * ((getW_single_drone() + w_parcel ) * g - get_c5() * pow(vh * cos(rad), 2));
+        double lhs = tan(rad) * ((getW_single_drone() + w_parcel) * g - get_c5() * pow(vh * cos(rad), 2));
         double rhs = get_c4() * vh * vh;
         double delta = abs(lhs - rhs);
         if (delta <= 0.2)

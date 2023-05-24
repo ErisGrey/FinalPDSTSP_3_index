@@ -10,35 +10,34 @@ Instance::Instance(string instanceFile, string paramsFile)
 {
 	read_input(instanceFile);
 	read_otherParams(paramsFile);
-	initialize();
 	// ENERGY MODEL
-	energyModel = new EnergyModel(frame_weight, battery_weight, num_propellers, rotor_blade_radius, battery_capacity, voltage, max_discharge_current, h_flight, v_takeoff, v_landing, air_density_rho, peukert_constant);
-	energyModel->flightTime.resize(num_nodes, -1);
-	energyModel->flightTime[0] = 0;
-	cout.precision(10);
-	for (int customer = 1; customer < getNum_nodes(); ++customer) {
-		double dist = dist_drone[0][customer] * 1000; // km to m
+	//energyModel = new EnergyModel(frame_weight, battery_weight, num_propellers, rotor_blade_radius, battery_capacity, voltage, max_discharge_current, h_flight, v_takeoff, v_landing, air_density_rho, peukert_constant);
+	//energyModel->flightTime.resize(num_nodes, -1);
+	//energyModel->flightTime[0] = 0;
+	//cout.precision(10);
+	//for (int customer = 1; customer < getNum_nodes(); ++customer) {
+	//	double dist = dist_drone[0][customer] * 1000; // km to m
 
-		if (getWeight(customer) + energyModel->getW_single_drone() > max_weight_allowed)
-			continue;
-		vector<double> optimal_setting = energyModel->get_optimal_power(getWeight(customer), dist);
-		if (optimal_setting[0] != -1) {
-			energyModel->flightTime[customer] =
-				dist / optimal_setting[0] + // inbound trip in second
-				dist / optimal_setting[1] + // outbound trip in second
-				2 * energyModel->h_flight / energyModel->v_takeoff + // 2 times takeoff in second
-				2 * energyModel->h_flight / energyModel->v_landing  // 2 time landing in second
-				;
-			energyModel->flightTime[customer] = round(energyModel->flightTime[customer] / 60); // /60 to minute
-		}
+	//	if (getWeight(customer) + energyModel->getW_single_drone() > max_weight_allowed)
+	//		continue;
+	//	vector<double> optimal_setting = energyModel->get_optimal_power(getWeight(customer), dist);
+	//	if (optimal_setting[0] != -1) {
+	//		energyModel->flightTime[customer] =
+	//			dist / optimal_setting[0] + // inbound trip in second
+	//			dist / optimal_setting[1] + // outbound trip in second
+	//			2 * energyModel->h_flight / energyModel->v_takeoff + // 2 times takeoff in second
+	//			2 * energyModel->h_flight / energyModel->v_landing  // 2 time landing in second
+	//			;
+	//		energyModel->flightTime[customer] = round(energyModel->flightTime[customer] / 60); // /60 to minute
+	//	}
 
-	}
-
-
+	//}
 
 
-	for (int i = 1; i < num_nodes; ++i) {
-		if (tdrone(i) < 0)
+
+
+	for (int i = 1; i <= num_nodes; ++i) {
+		if (time_drone[i] < 0)
 		{
 			truckonlyCustomer.insert(i);
 			cout << i << endl;
@@ -99,12 +98,12 @@ Instance::Instance(string instanceFile, string paramsFile)
 
 Instance::~Instance()
 {
-	delete energyModel;
+
 }
 
 void Instance::read_input(const string& inputFile)
 {
-	instanceName = inputFile.substr(53, 7);
+	instanceName = inputFile.substr(31);
 	ifstream myFile(inputFile);
 	if (!myFile.is_open())
 	{
@@ -115,67 +114,105 @@ void Instance::read_input(const string& inputFile)
 
 	string line;
 	vector< string > numbers;
-	
+
 	getline(myFile, line);
-	
-	split(line, numbers, ',');
-	
+	split(line, numbers, ' ');
+	num_nodes = stoi(numbers[1]);
+	cout << "num_nodes = " << num_nodes << endl;
+
+	getline(myFile, line);
+	split(line, numbers, ' ');
 	num_drones = stoi(numbers[1]);
-	
+	cout << "num_drones = " << num_drones << endl;
+
 
 	getline(myFile, line);
-	split(line, numbers, ',');
-	v_truck = stod(numbers[1]);
-
 	getline(myFile, line);
-	split(line, numbers, ',');
-	battery_weight = stod(numbers[1]);
-
-	getline(myFile, line);
-	split(line, numbers, ',');
-	battery_capacity = stod(numbers[1]);
-
-	getline(myFile, line);
-	split(line, numbers, ',');
-	max_discharge_current = stod(numbers[1]);
-
-	getline(myFile, line);
-	split(line, numbers, ',');
-	voltage = stod(numbers[1]);
-
-	//    getline(myFile, line);
-	//    split(line, numbers, ',');
-	//    endurance_drone = stoi(numbers[1]);
-
-	getline(myFile, line);
-
-	num_nodes = 0;
-	while (getline(myFile, line))
+	time_drone.resize(num_nodes + 1);
+	time_drone[0] = 0;
+	for (int i = 1; i <= num_nodes; i++)
 	{
-		split(line, numbers, '\t');
-		x.push_back(stod(numbers[1]));
-		y.push_back(stod(numbers[2]));
-		float w = stod(numbers[3]);
-		weight.push_back(w);
-		//        if (w > cap_drone){
-		//            overweight.push_back(1);
-		//        } else {
-		//            overweight.push_back(0);
-		//        }
-		num_nodes++;
+		getline(myFile, line);
+		split(line, numbers, ' ');
+		if (numbers[1] == "-") time_drone[i] = -1;
+		else time_drone[i] = stoi(numbers[1]);
 	}
-	weight[0] = 0;
 
-	for (int i = 0; i < num_nodes; ++i) {
-		weight[i] = std::floor(weight[i] * 1000) / 1000; /*Utils::round(weight[i], 3);*/
-		//weight[i] = Utils::round(weight[i], 2);
+	/*for (int i = 0; i <= num_nodes; i++)
+	{
+		cout << "time_drone[" << i << "] = " << time_drone[i] << endl;
+	}*/
+
+
+	time_truck.resize(num_nodes + 1);
+	for (int i = 0; i <= num_nodes; i++)
+	{
+		time_truck[i].resize(num_nodes + 1);
 	}
-	myFile.close();
+	getline(myFile, line);
+	for (int i = 0; i <= num_nodes; i++)
+	{
+		getline(myFile, line);
+		split(line, numbers, ' ');
+		for (int j = 0; j <= num_nodes; j++)
+		{
+			time_truck[i][j] = stoi(numbers[j]);
+		}
+
+	}
+	/*for (int i = 0; i <= num_nodes; i++) {
+		for (int j = 0; j <= num_nodes; j++) {
+			cout << "time_truck[" << i << "][" << j << "] = " << time_truck[i][j] << endl;
+		}
+	}*/
+		//battery_weight = stod(numbers[1]);
+
+		//getline(myFile, line);
+		//split(line, numbers, ',');
+		//battery_capacity = stod(numbers[1]);
+
+		//getline(myFile, line);
+		//split(line, numbers, ',');
+		//max_discharge_current = stod(numbers[1]);
+
+		//getline(myFile, line);
+		//split(line, numbers, ',');
+		//voltage = stod(numbers[1]);
+
+		////    getline(myFile, line);
+		////    split(line, numbers, ',');
+		////    endurance_drone = stoi(numbers[1]);
+
+		//getline(myFile, line);
+
+		//num_nodes = 0;
+		//while (getline(myFile, line))
+		//{
+		//	split(line, numbers, '\t');
+		//	x.push_back(stod(numbers[1]));
+		//	y.push_back(stod(numbers[2]));
+		//	float w = stod(numbers[3]);
+		//	weight.push_back(w);
+		//	//        if (w > cap_drone){
+		//	//            overweight.push_back(1);
+		//	//        } else {
+		//	//            overweight.push_back(0);
+		//	//        }
+		//	num_nodes++;
+		//}
+		//weight[0] = 0;
+
+		//for (int i = 0; i < num_nodes; ++i) {
+		//	weight[i] = std::floor(weight[i] * 1000) / 1000; /*Utils::round(weight[i], 3);*/
+		//	//weight[i] = Utils::round(weight[i], 2);
+		//}
+		myFile.close();
 }
+
 
 void Instance::read_otherParams(const string& paramsFile)
 {
-	ifstream myFile(paramsFile);
+	/*ifstream myFile(paramsFile);
 	if (!myFile.is_open()) {
 		cout << "Unable to open params file \n";
 		exit(0);
@@ -259,14 +296,14 @@ void Instance::read_otherParams(const string& paramsFile)
 		getline(ss, token, ',');
 		getline(ss, token, ',');
 		air_density_rho = stod(token);
-	}
+	}*/
 
 }
 
 void Instance::initialize()
 {
 	// Compute distance and time matrix
-	time_truck.resize(num_nodes);
+	/*time_truck.resize(num_nodes);
 	dist_drone.resize(num_nodes);
 	dist_truck.resize(num_nodes);
 	for (int i = 0; i < num_nodes; i++)
@@ -274,73 +311,73 @@ void Instance::initialize()
 		time_truck[i].resize(num_nodes);
 		dist_drone[i].resize(num_nodes);
 		dist_truck[i].resize(num_nodes);
-	}
+	}*/
 
-	for (int i = 0; i < num_nodes; i++) {
-		for (int j = 0; j < num_nodes; j++) {
-			float euc_d = pow(pow(x[i] - x[j], 2) + pow(y[i] - y[j], 2), 0.5);
-			float man_d = abs(x[i] - x[j]) + abs(y[i] - y[j]);
-			
-			dist_drone[i][j] = euc_d;
-			dist_truck[i][j] = man_d;
+	//for (int i = 0; i < num_nodes; i++) {
+	//	for (int j = 0; j < num_nodes; j++) {
+	//		float euc_d = pow(pow(x[i] - x[j], 2) + pow(y[i] - y[j], 2), 0.5);
+	//		float man_d = abs(x[i] - x[j]) + abs(y[i] - y[j]);
+	//		
+	//		dist_drone[i][j] = euc_d;
+	//		dist_truck[i][j] = man_d;
 
-			//            time_drone[i][j] = round(euc_d/v_drone);
-			time_truck[i][j] = man_d / v_truck * 60.0;
-			
-			time_truck[i][j] = ceil(time_truck[i][j]);
-		}
-	}
-	
-	
+	//		//            time_drone[i][j] = round(euc_d/v_drone);
+	//		time_truck[i][j] = man_d / v_truck * 60.0;
+	//		
+	//		time_truck[i][j] = ceil(time_truck[i][j]);
+	//	}
+	//}
+	//
+	//
 
-	
-	
-		// polar
-	polar.push_back(0);
-	for (int i = 1; i < num_nodes; ++i) {
-		double dx = x[i] - x[0];
-		double dy = y[i] - y[0];
-		double a = atan(dy / dx) * 180.0 / 3.14159265;
-		if (dx >= 0 && dy >= 0) {
+	//
+	//
+	//	// polar
+	//polar.push_back(0);
+	//for (int i = 1; i < num_nodes; ++i) {
+	//	double dx = x[i] - x[0];
+	//	double dy = y[i] - y[0];
+	//	double a = atan(dy / dx) * 180.0 / 3.14159265;
+	//	if (dx >= 0 && dy >= 0) {
 
-		}
-		else if (dx < 0 && dy >= 0) {
-			a += 180;
-		}
-		else if (dx < 0 && dy < 0) {
-			a += 180;
-		}
-		else if (dx >= 0 && dy < 0) {
-			a += 360;
-		}
+	//	}
+	//	else if (dx < 0 && dy >= 0) {
+	//		a += 180;
+	//	}
+	//	else if (dx < 0 && dy < 0) {
+	//		a += 180;
+	//	}
+	//	else if (dx >= 0 && dy < 0) {
+	//		a += 360;
+	//	}
 
-		polar.push_back(a);
-		//        cout << i <<" "<< a << "\n";
-	}
+	//	polar.push_back(a);
+	//	//        cout << i <<" "<< a << "\n";
+	//}
 
-	int n = num_nodes;
-	adjList.resize(num_nodes);
-	vector<int> customers;
-	for (int i = 0; i < n; i++) {
-		if (i != 0)
-			customers.push_back(i);
-		adjList[i].reserve(n);
-	}
+	//int n = num_nodes;
+	//adjList.resize(num_nodes);
+	//vector<int> customers;
+	//for (int i = 0; i < n; i++) {
+	//	if (i != 0)
+	//		customers.push_back(i);
+	//	adjList[i].reserve(n);
+	//}
 
-	
-}
-
-double Instance::tdrone(const int& customer) const
-{
-	return energyModel->flightTime[customer];
-}
-
-double Instance::serviceTime_drone(const int& customer) const
-{
-	
-	return tdrone(customer);
 	
 }
+
+//double Instance::tdrone(const int& customer) const
+//{
+//	return energyModel->flightTime[customer];
+//}
+
+//double Instance::serviceTime_drone(const int& customer) const
+//{
+//	
+//	return tdrone(customer);
+//	
+//}
 
 double Instance::ttruck(int i, int j)
 {

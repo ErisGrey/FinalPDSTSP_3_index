@@ -1,3 +1,4 @@
+#pragma once
 #ifndef ENERGYMODEL_H
 #define ENERGYMODEL_H
 #define PI 3.14159
@@ -27,17 +28,17 @@ public:
     const double peukert_constant;
 
     EnergyModel(double f_weight, double b_weight, int num_propellers, double r, double single_capacity, double voltage,
-                 double max_discharge_current, double hflight, double vtakeoff, double vlanding, double rho, double peukert);
+        double max_discharge_current, double hflight, double vtakeoff, double vlanding, double rho, double peukert);
 
-    double get_P_takeoff( const double& parcel_weight);
-    double get_P_landing( const double& parcel_weight);
-    double get_P_flight( const double& w_parcel, const double& v_h);
-    double get_P_hover( const double& w_parcel);
+    double get_P_takeoff(const double& parcel_weight);
+    double get_P_landing(const double& parcel_weight);
+    double get_P_flight(const double& w_parcel, const double& v_h);
+    double get_P_hover(const double& w_parcel);
     std::vector<double> get_optimal_power(const double& w_parcel, const double& distance);
 
-    double get_endurance( const double& w_parcel, const double& distance); // based on Peukert effect
+    double get_endurance(const double& w_parcel, const double& distance); // based on Peukert effect
 
-    double get_alpha( const double& w_parcel, const double& vh);
+    double get_alpha(const double& w_parcel, const double& vh);
     double get_k1();
     double get_k2();
 
