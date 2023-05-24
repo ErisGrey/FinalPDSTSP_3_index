@@ -20,12 +20,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />
-    <ClInclude Include="energymodel.h" />
     <ClInclude Include="instance.h" />
     <ClInclude Include="solver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="energymodel.cpp" />
     <ClCompile Include="instance.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="solver.cpp" />

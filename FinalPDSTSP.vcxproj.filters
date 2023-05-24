@@ -24,9 +24,6 @@
     <ClInclude Include="solver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="energymodel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="instance.cpp">
@@ -36,9 +33,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="energymodel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
